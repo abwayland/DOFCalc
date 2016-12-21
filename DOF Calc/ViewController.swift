@@ -18,12 +18,55 @@ class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSour
     @IBOutlet var focalLengthButton: UIButton!
     @IBOutlet var distanceButton: UIButton!
     
+    @IBOutlet var hyperFocalView: UILabel!
     var fStop: Double = 0.0
     var fStopIdx = 0
     var focalLength = 0
     var focalLengthIdx = 0
     var distance = 0
     var distanceIdx = 0
+    var totalDOF: Double {
+        get{
+            return fStop * Double(focalLength)
+        }
+    }
+    
+    //Circle of Confusion for various sensors in Millimeters
+    let CoC_APS_C = 0.02
+    let CoC_35mm = 0.03 //Leica
+    
+    //hyperFocal in Millimeters
+    var hyperFocal: Double {
+        get {
+            return Double(focalLength * focalLength) / (fStop * CoC_APS_C)
+        }
+    }
+    
+    var nearPoint: Double {
+        get {
+            return (hyperFocal * Double(convertInToMM(inches: distance))) / (hyperFocal + (convertInToMM(inches: distance) - Double(focalLength)))
+        }
+    }
+    
+    var farPoint: Double {
+        get {
+            return (hyperFocal * Double(convertInToMM(inches: distance))) / (hyperFocal - (convertInToMM(inches: distance) - Double(focalLength)))
+        }
+    }
+    
+    var DOF: Double {
+        get {
+            return farPoint - nearPoint
+        }
+    }
+    
+    func convertMMToFt(mm: Double) -> Double {
+        return mm / 304.8
+    }
+    
+    func convertInToMM(inches: Int) -> Double {
+        return 25.4 * Double(inches)
+    }
     
     //MARK: Button Actions
     
@@ -160,6 +203,11 @@ class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSour
             distanceIdx = pickerView.selectedRow(inComponent: 0)
         default: break
         }
+        hyperFocalView.text = String(format: "%.2fft", convertMMToFt(mm: hyperFocal))
+        nearPointView.text = String(format: "%.2fft", convertMMToFt(mm: nearPoint))
+        farPointView.text = String(format: "%.2fft", convertMMToFt(mm: farPoint))
+        totalDOFView.text = String(format: "%.2f", convertMMToFt(mm: DOF))
+        self.view.setNeedsDisplay()
     }
     
     func pickerView(_ pickerView: UIPickerView, attributedTitleForRow row: Int, forComponent component: Int) -> NSAttributedString? {
