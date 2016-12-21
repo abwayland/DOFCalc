@@ -18,58 +18,98 @@ class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSour
     @IBOutlet var focalLengthButton: UIButton!
     @IBOutlet var distanceButton: UIButton!
     
+    var fStop: Double = 0.0
+    var fStopIdx = 0
+    var focalLength = 0
+    var focalLengthIdx = 0
+    var distance = 0
+    var distanceIdx = 0
+    
     //MARK: Button Actions
-    
-    var isSomeButtonSelected = false
-    
-    func someButtonIsPressed() {
-        isSomeButtonSelected = !isSomeButtonSelected
-        for subView in self.view.subviews {
-            if subView.tag == 99 {
-                subView.isHidden = !subView.isHidden
-            }
-        }
-        pickerView.isHidden = !pickerView.isHidden
-    }
     
     var nameOfButtonPressed = ""
     
-    @IBAction func fStopButtonPressed(_ sender: UIButton) {
-        someButtonIsPressed()
-        nameOfButtonPressed = "fStop"
-        if isSomeButtonSelected {
-            self.view.backgroundColor = sender.backgroundColor
-            fStopButton.setTitle("close", for: .normal)
-            pickerView.reloadAllComponents()
-        } else {
-            self.view.backgroundColor = backgroundColor
-            fStopButton.setTitle("f/" + String(fStopArr[pickerView.selectedRow(inComponent: 0)]), for: .normal)
-        }
-    }
-    
-    @IBAction func focalLengthButtonPressed(_ sender: UIButton) {
-        someButtonIsPressed()
-        nameOfButtonPressed = "focalLength"
-        if isSomeButtonSelected {
-            self.view.backgroundColor = sender.backgroundColor
-            focalLengthButton.setTitle("close", for: .normal)
-            pickerView.reloadAllComponents()
-        } else {
-            self.view.backgroundColor = backgroundColor
-            focalLengthButton.setTitle(String(focalLengthArr[pickerView.selectedRow(inComponent: 0)]) + "mm", for: .normal)
-        }
-    }
-    
-    @IBAction func distanceButtonPressed(_ sender: UIButton) {
-        someButtonIsPressed()
-        nameOfButtonPressed = "distance"
-        if isSomeButtonSelected {
-            self.view.backgroundColor = sender.backgroundColor
-            distanceButton.setTitle("close", for: .normal)
-            pickerView.reloadAllComponents()
-        } else {
-            self.view.backgroundColor = backgroundColor
-            distanceButton.setTitle(String(distanceArr[pickerView.selectedRow(inComponent: 0)]) + "ft", for: .normal)
+    @IBAction func buttonPressed(_ sender: UIButton) {
+        switch sender.tag {
+        case 1:
+            if nameOfButtonPressed != "fStop" {
+                nameOfButtonPressed = "fStop"
+                fStopButton.setTitle("close", for: .normal)
+                self.view.backgroundColor = sender.backgroundColor
+                for subView in self.view.subviews {
+                    if subView.tag == 99 {
+                        subView.isHidden = true
+                    }
+                }
+                pickerView.reloadAllComponents()
+                pickerView.isHidden = false
+                pickerView.selectRow(fStopIdx, inComponent: 0, animated: false)
+            } else {
+                nameOfButtonPressed = ""
+                self.view.backgroundColor = backgroundColor
+                fStopButton.setTitle("f/" + String(fStop), for: .normal)
+                for subView in self.view.subviews {
+                    if subView.tag == 99 {
+                        subView.isHidden = false
+                    }
+                }
+                pickerView.isHidden = true
+            }
+            focalLengthButton.setTitle(String(focalLength) + "mm", for: .normal)
+            distanceButton.setTitle(String(distance) + "ft", for: .normal)
+        case 2:
+            if nameOfButtonPressed != "focalLength" {
+                nameOfButtonPressed = "focalLength"
+                focalLengthButton.setTitle("close", for: .normal)
+                self.view.backgroundColor = sender.backgroundColor
+                for subView in self.view.subviews {
+                    if subView.tag == 99 {
+                        subView.isHidden = true
+                    }
+                }
+                pickerView.reloadAllComponents()
+                pickerView.isHidden = false
+                pickerView.selectRow(focalLengthIdx, inComponent: 0, animated: false)
+            } else {
+                nameOfButtonPressed = ""
+                self.view.backgroundColor = backgroundColor
+                focalLengthButton.setTitle(String(focalLength) + "mm", for: .normal)
+                for subView in self.view.subviews {
+                    if subView.tag == 99 {
+                        subView.isHidden = false
+                    }
+                }
+                pickerView.isHidden = true
+            }
+            fStopButton.setTitle("f/" + String(fStop), for: .normal)
+            distanceButton.setTitle(String(distance) + "ft", for: .normal)
+        case 3:
+            if nameOfButtonPressed != "distance" {
+                nameOfButtonPressed = "distance"
+                distanceButton.setTitle("close", for: .normal)
+                self.view.backgroundColor = sender.backgroundColor
+                for subView in self.view.subviews {
+                    if subView.tag == 99 {
+                        subView.isHidden = true
+                    }
+                }
+                pickerView.reloadAllComponents()
+                pickerView.isHidden = false
+                pickerView.selectRow(distanceIdx, inComponent: 0, animated: false)
+            } else {
+                nameOfButtonPressed = ""
+                self.view.backgroundColor = backgroundColor
+                distanceButton.setTitle(String(distance) + "ft", for: .normal)
+                for subView in self.view.subviews {
+                    if subView.tag == 99 {
+                        subView.isHidden = false
+                    }
+                }
+                pickerView.isHidden = true
+            }
+            fStopButton.setTitle("f/" + String(fStop), for: .normal)
+            focalLengthButton.setTitle(String(focalLength) + "mm", for: .normal)
+        default: print("error: button pressed not found")
         }
     }
     
@@ -97,38 +137,41 @@ class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSour
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         switch nameOfButtonPressed {
         case "fStop":
-            print("fstop")
             return String(fStopArr[row])
         case "focalLength" :
-            print("focalLength")
             return String(focalLengthArr[row])
         case "distance" :
-            print("distance")
             return String(distanceArr[row])
         default:
-            print("default")
             return String(fStopArr[row])
         }
     }
     
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
-        //fStopButton.setTitle(String(fStopArr[row]), for: .normal)
+        switch nameOfButtonPressed {
+        case "fStop":
+            fStop = fStopArr[row]
+            fStopIdx = pickerView.selectedRow(inComponent: 0)
+        case "focalLength" :
+            focalLength = focalLengthArr[row]
+            focalLengthIdx = pickerView.selectedRow(inComponent: 0)
+        case "distance" :
+            distance = distanceArr[row]
+            distanceIdx = pickerView.selectedRow(inComponent: 0)
+        default: break
+        }
     }
     
     func pickerView(_ pickerView: UIPickerView, attributedTitleForRow row: Int, forComponent component: Int) -> NSAttributedString? {
         
         switch nameOfButtonPressed {
         case "fStop":
-            print("fstop")
-            return NSAttributedString(string: String(fStopArr[row]), attributes: [NSForegroundColorAttributeName : UIColor.white])
+            return NSAttributedString(string: "f/" + String(fStopArr[row]), attributes: [NSForegroundColorAttributeName : UIColor.white])
         case "focalLength" :
-            print("focalLength")
             return NSAttributedString(string: String(focalLengthArr[row]) + "mm", attributes: [NSForegroundColorAttributeName : UIColor.white])
         case "distance" :
-            print("distance")
             return NSAttributedString(string: String(distanceArr[row]), attributes: [NSForegroundColorAttributeName : UIColor.white])
         default:
-            print("default")
             return NSAttributedString(string: String(fStopArr[row]), attributes: [NSForegroundColorAttributeName : UIColor.white])
         }
     }
