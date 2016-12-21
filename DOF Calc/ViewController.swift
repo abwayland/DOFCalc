@@ -56,7 +56,7 @@ class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSour
                 pickerView.isHidden = true
             }
             focalLengthButton.setTitle(String(focalLength) + "mm", for: .normal)
-            distanceButton.setTitle(String(distance) + "ft", for: .normal)
+            distanceButton.setTitle(getDistString(inches: distance), for: .normal)
         case 2:
             if nameOfButtonPressed != "focalLength" {
                 nameOfButtonPressed = "focalLength"
@@ -82,7 +82,7 @@ class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSour
                 pickerView.isHidden = true
             }
             fStopButton.setTitle("f/" + String(fStop), for: .normal)
-            distanceButton.setTitle(String(distance) + "ft", for: .normal)
+            distanceButton.setTitle(getDistString(inches: distance), for: .normal)
         case 3:
             if nameOfButtonPressed != "distance" {
                 nameOfButtonPressed = "distance"
@@ -99,7 +99,7 @@ class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSour
             } else {
                 nameOfButtonPressed = ""
                 self.view.backgroundColor = backgroundColor
-                distanceButton.setTitle(String(distance) + "ft", for: .normal)
+                distanceButton.setTitle(getDistString(inches: distance), for: .normal)
                 for subView in self.view.subviews {
                     if subView.tag == 99 {
                         subView.isHidden = false
@@ -170,26 +170,37 @@ class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSour
         case "focalLength" :
             return NSAttributedString(string: String(focalLengthArr[row]) + "mm", attributes: [NSForegroundColorAttributeName : UIColor.white])
         case "distance" :
-            return NSAttributedString(string: String(distanceArr[row]), attributes: [NSForegroundColorAttributeName : UIColor.white])
+            let distPickerStr = getDistString(inches: distanceArr[row])
+            return NSAttributedString(string: distPickerStr, attributes: [NSForegroundColorAttributeName : UIColor.white])
         default:
-            return NSAttributedString(string: String(fStopArr[row]), attributes: [NSForegroundColorAttributeName : UIColor.white])
+            return NSAttributedString(string: "Error", attributes: [NSForegroundColorAttributeName : UIColor.white])
         }
+    }
+    
+    func getDistString(inches: Int) -> String {
+        var distTempStr = ""
+        if inches <= 11 {
+            distTempStr = String(inches) + "in"
+        } else {
+            distTempStr = String(Double(inches) / 12.0) + "ft"
+        }
+        return distTempStr
     }
     
     let fStopArr = [1.0, 1.1, 1.2, 1.4, 1.6, 1.8, 2.0, 2.5, 2.8, 3.2, 3.5, 4.0, 4.5, 5.0, 5.6, 6.3, 7.1, 8.0, 9.0, 10, 11, 13, 14, 16, 18, 20, 22]
     
     let focalLengthArr = [14, 17, 20, 24, 35, 40, 50, 70, 85, 105, 135, 200, 250, 300]
     
-    let distanceArr = [1 ,5 ,10]
+    let distanceArr = [1,2,3,4,5,6,7,8,9,10,11,12,18,24,30,36,42,48,54,60,66,72,78,84,90,96,102,108,114,120]
     
     override func viewDidLoad() {
         super.viewDidLoad()
         pickerView.delegate = self
         pickerView.dataSource = self
         self.view.backgroundColor = backgroundColor
-        fStopButton.setTitle(String(fStopArr[0]), for: .normal)
-        focalLengthButton.setTitle(String(focalLengthArr[0]), for: .normal)
-        distanceButton.setTitle(String(distanceArr[0]), for: .normal)
+        fStopButton.setTitle("-", for: .normal)
+        focalLengthButton.setTitle("-", for: .normal)
+        distanceButton.setTitle("-", for: .normal)
     }
 
     override func didReceiveMemoryWarning() {
