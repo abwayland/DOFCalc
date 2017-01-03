@@ -9,7 +9,8 @@
 import UIKit
 
 class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSource {
-    let backgroundColor = UIColor(red: 0.3, green: 0.3, blue: 0.35, alpha: 1)
+    
+    var backgroundColor: UIColor? = nil
     @IBOutlet var pickerView: UIPickerView!
     @IBOutlet var totalDOFView: UILabel!
     @IBOutlet var nearPointView: UILabel!
@@ -17,13 +18,14 @@ class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSour
     @IBOutlet var fStopButton: UIButton!
     @IBOutlet var focalLengthButton: UIButton!
     @IBOutlet var distanceButton: UIButton!
+    @IBOutlet var settingsButton: UIButton!
     
     @IBOutlet var hyperFocalView: UILabel!
-    var fStop: Double = 0.0
+    var fStop: Double = 1.0
     var fStopIdx = 0
-    var focalLength = 0
+    var focalLength = 14
     var focalLengthIdx = 0
-    var distance = 0
+    var distance = 1
     var distanceIdx = 0
     var totalDOF: Double {
         get{
@@ -31,14 +33,39 @@ class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSour
         }
     }
     
+    @IBAction func settingsModalDidFinishWithFourThirds(segue: UIStoryboardSegue) {
+        CoC = CoC_fourThirds
+        settingsButton.setTitle("4/3", for: .normal)
+        updateValuesInViews()
+    }
+    
+    @IBAction func settingsModalDidFinishWithAPS_C(segue: UIStoryboardSegue) {
+        CoC = CoC_APS_C
+        settingsButton.setTitle("aps-c", for: .normal)
+        updateValuesInViews()
+    }
+    
+    @IBAction func settingsModalDidFinishWith35mms(segue: UIStoryboardSegue) {
+        CoC = CoC_35mm
+        settingsButton.setTitle("35mm", for: .normal)
+        updateValuesInViews()
+    }
+    
     //Circle of Confusion for various sensors in Millimeters
-    let CoC_APS_C = 0.02
-    let CoC_35mm = 0.03 //Leica
+    var CoC: Double? = nil
+    let CoC_fourThirds = 0.014
+    let CoC_APS_C = 0.0185
+    let CoC_35mm = 0.029
     
     //hyperFocal in Millimeters
     var hyperFocal: Double {
         get {
-            return Double(focalLength * focalLength) / (fStop * CoC_APS_C)
+            if CoC != nil {
+                return Double(focalLength * focalLength) / (fStop * CoC!)
+            } else {
+                return 0.0
+            }
+            
         }
     }
     
@@ -203,10 +230,27 @@ class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSour
             distanceIdx = pickerView.selectedRow(inComponent: 0)
         default: break
         }
-        hyperFocalView.text = String(format: "%.2fft", convertMMToFt(mm: hyperFocal))
+        updateValuesInViews()
+    }
+    
+    func updateValuesInViews() {
+        let hyperFocalStr = String(format: "%.2fft", convertMMToFt(mm: hyperFocal))
+        hyperFocalView.text = hyperFocalStr
         nearPointView.text = String(format: "%.2fft", convertMMToFt(mm: nearPoint))
-        farPointView.text = String(format: "%.2fft", convertMMToFt(mm: farPoint))
-        totalDOFView.text = String(format: "%.2f", convertMMToFt(mm: DOF))
+        if farPoint >= 0 {
+            farPointView.text = String(format: "%.2fft", convertMMToFt(mm: farPoint))
+        } else {
+            farPointView.text = "\u{221E}"
+        }
+        if DOF >= 0 {
+            totalDOFView.text = String(format: "%.2f", convertMMToFt(mm: DOF))
+        } else {
+            if farPoint - nearPoint < 0.01 && farPoint > 0.0 {
+                totalDOFView.text = "0.00"
+            } else {
+                totalDOFView.text = "\u{221E}"
+            }
+        }
         self.view.setNeedsDisplay()
     }
     
@@ -239,16 +283,19 @@ class ViewController: UIViewController,UIPickerViewDelegate,UIPickerViewDataSour
     
     let focalLengthArr = [14, 17, 20, 24, 35, 40, 50, 70, 85, 105, 135, 200, 250, 300]
     
-    let distanceArr = [1,2,3,4,5,6,7,8,9,10,11,12,18,24,30,36,42,48,54,60,66,72,78,84,90,96,102,108,114,120]
+    let distanceArr = [1,2,3,4,5,6,7,8,9,10,11,12,18,24,30,36,42,48,54,60,66,72,78,84,90,96,102,108,114,120,132,144,156,168,180,192,204,216,228,240,300,360,420,540,600]
     
     override func viewDidLoad() {
         super.viewDidLoad()
         pickerView.delegate = self
         pickerView.dataSource = self
-        self.view.backgroundColor = backgroundColor
-        fStopButton.setTitle("-", for: .normal)
-        focalLengthButton.setTitle("-", for: .normal)
-        distanceButton.setTitle("-", for: .normal)
+        //settingsButton.setTitle("\u{26ED}", for: .normal)
+        fStopButton.setTitle("f/" + String(fStop), for: .normal)
+        focalLengthButton.setTitle(String(focalLength) + "mm", for: .normal)
+        distanceButton.setTitle(getDistString(inches: distance), for: .normal)
+        CoC = CoC_35mm
+        settingsButton.setTitle("35mm", for: .normal)
+        backgroundColor = self.view.backgroundColor
     }
 
     override func didReceiveMemoryWarning() {
